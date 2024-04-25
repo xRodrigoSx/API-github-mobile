@@ -1,42 +1,56 @@
+import { TextInput, StyleSheet, TouchableOpacity, Text, View, FlatList } from "react-native";
 import { useEffect, useState } from "react";
 import { Repository } from "../types/Repository";
 import { baseUrl } from "../utils/constants";
-import { FlatList } from "react-native/Libraries/Lists/FlatList";
 import Card from "../components/Card";
-import axios from 'axios';
-import { TextInput } from "react-native";
+import axios from "axios";
 
 const User = () => {
-    const [repositoryList, setrepositoryList] = useState<Repository[]>([]);
-    const [UserInput, setUserInput] = useState<Repository[]>([]);
+    const [userInput, setUserInput] = useState<string>('');
+    const [repositoryList, setRepositoryList] = useState<Repository[]>([]);
 
-    const getRepositories = async () => {
-        try {
-            const response = await axios.get<Repository[]>(`${baseUrl}/repos`);
-            setrepositoryList(response.data);
-        } catch (error) {
-            console.log(error);
+    const handleSearchUser = async () => {
+        if (userInput !== "") {
+
+            const url = `${baseUrl}/${userInput}/repos`
+            try {
+                const response = await axios.get<Repository[]>(url);
+                setRepositoryList(response.data);
+            } catch (error) {
+                console.log(error);
+            }
         }
-    };
-
-    useEffect(() => {
-        getRepositories();
-    }, []);
+    }
 
     return (
-        <view style={styles.container}>
-            <TextInput onChangeText={setUserInput}/>
-            <FlatList
-                data={repositoryList}
-                renderItem={({ item }) => <Card post={item} />}
-                keyExtractor={(item) => item.id.toString()}
-            />
-        </view>
-    );
-};
+        <View style={styles.container}>
+            <Text>Buscador de Github</Text>
+            <TextInput value={userInput} onChangeText={setUserInput} placeholder="Escreva o nome de um usuário do Github" />
+            <TouchableOpacity onPress={handleSearchUser}>
+                <Text>Buscar</Text>
+            </TouchableOpacity>
+            {repositoryList.length > 0 ? (
+                <FlatList
+                    data={repositoryList}
+                    renderItem={({ item }) => <Card repository={item} />}
+                    keyExtractor={(item) => item.id.toString()}
+                />
+            ) : (
+                <Text>Sem Informações</Text>
+            )}
+        </View>
+    )
+}
 
 const styles = StyleSheet.create({
+container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    padding: 40,
+},
 
 });
 
-export default Posts;
+export default User;
